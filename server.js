@@ -116,23 +116,28 @@ Homemessagess=function(userss_id,others_uid){
 }
 
 inserting= function(other,main,mesg){     
-    // var sql="insert into users_messages(msg_content,msg_status,receiver_id,receiver_status,sender_id,sender_status,user_id)values(?,1,?,1,?,1,?)";
-    
-    var sql="insert into users_messages(msg_content,msg_status,receiver_id,receiver_status,sender_id,sender_status,user_id)values(?,1,?,0,?,1,?)";
+
+    if(seenmsgs[other]==main){
+    var sql="insert into users_messages(msg_content,msg_status,receiver_id,receiver_status,sender_id,sender_status,user_id)values(?,1,?,1,?,1,?)";
+    }else{
+        var sql="insert into users_messages(msg_content,msg_status,receiver_id,receiver_status,sender_id,sender_status,user_id)values(?,1,?,0,?,1,?)";
+    }        
     
     return new Promise((resolve,reject)=> {
         db.query(sql,[mesg,other,main,main],function(err,res){     
             if(err){
                 console.log(err);
-            }else{
-                console.log(seenmsgs);
-                if(seenmsgs[other]==main){
-                    var updateMsg= "UPDATE users_messages SET receiver_status = '1' WHERE (receiver_id = ? AND sender_id=?) OR (receiver_id = ? AND sender_id=?)";
-                    return new Promise((resolve,reject)=> {
-                        db.query(updateMsg,[main,other,other,main],function(err,res){});
-                    });
-                }
             }
+            // else{                
+            //     if(seenmsgs[other]==main){
+            //         var updateMsg= "UPDATE users_messages SET receiver_status = '1' WHERE (receiver_id = ? AND sender_id=?) OR (receiver_id = ? AND sender_id=?)";
+            //         return new Promise((resolve,reject)=> {
+            //             db.query(updateMsg,[main,other,other,main],function(err,res){
+            //                 return resolve(mesg);  
+            //             });
+            //         });
+            //     }
+            // }
             return resolve(mesg);            
         })
     })
@@ -145,7 +150,7 @@ updatemsgsStart=function(mine,other){
             if(err){
                 console.log(err);
             }else{
-                console.log('success');    
+             console.log('updated');
             }
         });
     });
@@ -199,6 +204,8 @@ app.get('/allusers',function(req,res){
     main_user=req.session.user_id;
 })
 
+// all $.post requests in the app begins here 
+
 app.post('/request', async(req,res) =>{
 
     var automsgsmain='';
@@ -212,12 +219,21 @@ app.post('/request', async(req,res) =>{
             }
             automsgsmain+='<div class="list-item" data-id="19"><div><a href="#" data-abc="true"><span class="w-48 avatar gd-warning">S</span></a></div><div class="flex"><a href="http://localhost:9999/chat-page/'+element.receiver_id+'" class="item-author text-color" data-abc="true">'+await names(element.receiver_id)+'</a><div class="item-except text-muted text-sm h-1x">'+msgsdisplays+'</div></div><div class="no-wrap" style="position: absolute;right: 0;"><div class="item-date text-muted text-sm d-md-block">13/12 18</div></div></div>';
         }        
-        let buff = new Buffer(automsgsmain);
+        let buff = new Buffer.from(automsgsmain);
         let base64data = buff.toString('base64');        
         res.json({
             msg:base64data
         })
 })
+
+// app.post('/updateMsgs',async(req,res)=>{
+// var MsgUpdateMineId=req.body.mine_id;
+// var MsgUpdateOthersId=req.body.others_main_id;
+// seenmsgs[MsgUpdateMineId]=MsgUpdateOthersId;    
+//         await updatemsgsStart(MsgUpdateMineId,MsgUpdateOthersId);    
+// })
+
+// ends here
 
 // socket related code
 
@@ -258,7 +274,14 @@ socket.on('get_msg',async (data)=>{
             socket.emit('statuss',0);
         } 
     }   
-    setInterval(checkedStat, 1500)
+    setInterval(checkedStat, 1500);      
+    socket.emit('entered',data);    
+})
+
+socket.on('msgs_see',async(data)=>{
+ seenmsgs[data[0]]=data[1];  
+ console.log(seenmsgs);
+var update = await updatemsgsStart(data[0],data[1]); 
 })
 
 socket.on('typing',function(data){
@@ -271,22 +294,24 @@ socket.on('typing',function(data){
     }
 })
 
-socket.on("seen",async(response)=>{
+socket.on("seenmsg",async(response)=>{  
     seenmsgs[response[0]]=response[1];
-    console.log(response);
-    if(response[1]!=0){
-        await updatemsgsStart(response[0],response[1]);
-    }
+    console.log(seenmsgs);
+})
+    
+//     if(response[1]!=0){
+//         await updatemsgsStart(response[0],response[1]);
+//     }
     // if(seenmsg_time!=''){
     // clearTimeout(seenmsg_time);
     // }
     // var seenmsg_time=setTimeout(() => {
     //     seenmsgs[response[0]]=0;
     // }, 1500);
-})
 
 socket.on('online',function(data){  
     online_status[data]='online';
+    // seenmsgs[data]=0;
 })
 
 socket.on('logout',function(data){
