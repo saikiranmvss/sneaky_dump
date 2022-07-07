@@ -214,8 +214,8 @@ h2.online-text {
 </section>
 <script>
   var array_dis=[];
-            const messages = document.getElementById('messages');
-            function scrollToBottom() {
+const messages = document.getElementById('messages');
+function scrollToBottom() {
   messages.scrollTop = messages.scrollHeight;
 }
             const socket = io();
@@ -226,9 +226,7 @@ h2.online-text {
                 array_dis=[mine_id,others_main_id];
                 socket.on('status',function(data){
                     
-                })
-                // setInterval(function(){                  
-                // }, 2000);              
+                })        
                 var id="online";
                 socket.emit('online',mine_id);
                 socket.emit('store',array_sockets);
@@ -250,13 +248,14 @@ h2.online-text {
                 socket.on('usersname',function(data){
                   $('#usersName').html(data);
                   $('.NamesType').html(data+' is typing');                  
-                });
+                });                              
+            })
+            socket.on("entered",function(data){
+              socket.emit('msgs_see',array_dis);
             })
             // setInterval(function() {
-              socket.emit('seen',array_dis);
             // }, 2000);            
-
-            var msgtype='yes';
+var msgtype='yes';
 var notmsgtype='no';
 var typingStatusUsers=[mine_id,others_main_id,msgtype];
 var NottypingStatusUsers=[mine_id,others_main_id,notmsgtype];
@@ -307,5 +306,7 @@ socket.on('display',function(data){
                     scrollToBottom();
                 })
                 scrollToBottom();
-
+// $.post('/updateMsgs',{mine_id:mine_id,others_main_id:others_main_id},function (data, status) {
+//    console.log('testSuccess');
+//   });
             </script>

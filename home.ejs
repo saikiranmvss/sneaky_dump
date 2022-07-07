@@ -177,7 +177,7 @@ document.onreadystatechange = function () {
     var mine_id='<%= sessioned_id %>';
 socket.emit('online',mine_id);
 var array_dis=[mine_id,0];
-socket.emit('seen',array_dis);
+socket.emit('seenmsg',array_dis);
 
 setInterval(function () {
 $.post("/request",{mine_id:mine_id},function (data, status) { $('#automsgs').html(atob(data.msg)); });
