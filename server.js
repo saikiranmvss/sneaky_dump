@@ -45,6 +45,10 @@ app.get('/loginpage',function(req,res){
     res.render('login.ejs');
 })
 
+app.get('/profile_page',function(req,res){
+    res.render('profile_settings.ejs');
+})
+
 /* home */
 var conID='';
 var online_status=[];
@@ -260,7 +264,7 @@ socket.on('get_msg',async (data)=>{
     var dismsg='';
     for(const mainmsgings of mainmsging){
         if(mainmsgings.sender_id==data[0]){            
-            dismsg+='<div class="d-flex flex-row justify-content-end"><div><p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">'+mainmsgings.msg_content+'</p></div><img src="../images/woman.jpg" alt="avatar 1" style="width: 45px; height: 100%;"></div>';
+            dismsg+='<div class="d-flex flex-row justify-content-end"><div><p class="small p-2 mb-1 text-white rounded-3 bg-primary">'+mainmsgings.msg_content+'</p></div></div>';
         }else{
             dismsg+='<div class="d-flex flex-row justify-content-start mb-4"><img src="../images/man.jpg" alt="avatar 1" style="width: 45px; height: 100%;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';
         }
