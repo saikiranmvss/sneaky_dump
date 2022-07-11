@@ -175,7 +175,7 @@ h2.online-text {
           <div class="d-flex" style="border-bottom:1px solid #dbd9d9">
             <i onclick="history.back()" class="fas fa-angle-left" style="align-items: self-start;font-size: 20px;padding-top: 25px;padding-left: 11px;"></i>
             <div style="display:inline-flex;align-items: flex-start;padding-bottom: 15px;">
-             <div class="head-items"> <img src="../images/man.jpg" alt="avatar 1" style="width: 45px;/* height: 100%; */"></div>
+             <div class="head-items"> <img src="../images/default_img.jpeg" id="users_pic" alt="avatar 1" style="width: 45px;border: 2px solid rgb(230 230 230);border-radius: 20px;box-shadow: #466179 0px 2px 8px;"></div>
            <div class="users_text head-items"> <p class="mb-0" id="usersName"></p>
             <div class="" id="statusUser" style="display:none;">
              <div style="display:flex;align-items:baseline;height: 10px;"> <div class="online-indicator" id="online-indicator">
@@ -247,8 +247,9 @@ function scrollToBottom() {
                 })
                 socket.emit('name',others_main_id);
                 socket.on('usersname',function(data){
-                  $('#usersName').html(data);
-                  $('.NamesType').html(data+' is typing');                  
+                  $('#usersName').html(data[0]);
+                  $('#users_pic').attr('src','../images/'+data[1]);
+                  $('.NamesType').html(data[0]+' is typing');                  
                 });                              
             })
             socket.on("entered",function(data){
