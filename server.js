@@ -24,11 +24,18 @@ app.get('/',function(requ,res){
 app.post('/signup',function(req,res){
     var form = new formidable.IncomingForm();
     form.parse(req, function (err, fields, files) {
+        if(fields.files!='default_img.jpeg'){        
         var oldpath = files.files.filepath;
-        var newpath = 'C:/Users/Win/node/sneaky/images/' + files.files.originalFilename;
-        fs.rename(oldpath, newpath, function (err) {});
+        var newpath = 'C:/Users/Win/node/sneaky2/public/images/' + files.files.originalFilename;
+        fs.rename(oldpath, newpath, function (err) {
+            console.log(err);
+        });
+        var filename=files.files.originalFilename;
+        }else{
+            var filename='default_img.jpeg';    
+        }
     var sql="insert into users(name,email,phone,address,password,user_type,user_status,user_pic)values(?,?,?,?,?,?,?,?)";
-    db.query(sql,[fields.name,fields.email,fields.phone,fields.address,fields.password,1,1,files.files.originalFilename],function(err,result){
+    db.query(sql,[fields.name,fields.email,fields.phone,fields.address,fields.password,1,1,filename],function(err,result){
 if(err){
     console.log(err);
 }else{
@@ -43,10 +50,6 @@ res.json({
 /* login page */
 app.get('/loginpage',function(req,res){
     res.render('login.ejs');
-})
-
-app.get('/profile_page',function(req,res){
-    res.render('profile_settings.ejs');
 })
 
 /* home */
@@ -92,11 +95,20 @@ callbacking = function(user_ids){
 }
 var array=[];
 var msg_array=[];
+var pictures_array=[];
 names = function (userId) {
     var sql="select name from users where user_id=?";
     return new Promise((resolve,reject)=> {
         db.query(sql,[userId],function(err,res){
             return resolve(res[0].name);
+        })
+    })
+}
+usersImages = function (userId) {
+    var sql="select user_pic from users where user_id=?";
+    return new Promise((resolve,reject)=> {
+        db.query(sql,[userId],function(err,res){
+            return resolve(res[0].user_pic);
         })
     })
 }
@@ -154,7 +166,7 @@ updatemsgsStart=function(mine,other){
             if(err){
                 console.log(err);
             }else{
-             console.log('updated');
+             
             }
         });
     });
@@ -187,15 +199,25 @@ app.get('/homepage',async (req,res) =>{
         elements=await callbacking(req.session.user_id);
         array.length=0;
         msg_array.length=0;        
+        pictures_array.length=0;
         for(const element of elements){
         msg_array.push(await messagess(req.session.user_id,element.receiver_id));           
-         array.push(await names(element.receiver_id));
+        pictures_array.push(await usersImages(element.receiver_id));
+         array.push(await names(element.receiver_id));         
          receivers_ids.push(element.receiver_id);
         }
-        res.render('home.ejs',{elements:elements,array,msg_array,sessioned_id:req.session.user_id,receivers_ids:receivers_ids})
+        res.render('home.ejs',{elements:elements,pictures_array,array,msg_array,sessioned_id:req.session.user_id,receivers_ids:receivers_ids})
 }else{
         res.render('login.ejs');
     }
+})
+
+
+
+var user_picture='';
+app.get('/profile_page',async(req,res)=>{
+    user_picture= await usersImages(req.session.user_id);
+    res.render('profile_settings.ejs',{user_picture:user_picture});
 })
 
 /* end here */
@@ -209,19 +231,20 @@ app.get('/allusers',function(req,res){
 })
 
 // all $.post requests in the app begins here 
-
+var pictures='';
 app.post('/request', async(req,res) =>{
 
-    var automsgsmain='';
+    var automsgsmain='';    
     autoelements=await callbacking(req.body.mine_id);  
-        for(const element of autoelements){            
+        for(const element of autoelements){                        
             var msgsdisplay=await Homemessagess(req.body.mine_id,element.receiver_id);            
+            pictures=await usersImages(element.receiver_id);
             if(msgsdisplay.sender_id!=req.body.mine_id && msgsdisplay.receiver_status!=1){
             var msgsdisplays='<strong>'+msgsdisplay.msg_content+'</strong>';
             }else{
             var msgsdisplays=msgsdisplay.msg_content;
             }
-            automsgsmain+='<div class="list-item" data-id="19"><div><a href="#" data-abc="true"><span class="w-48 avatar gd-warning">S</span></a></div><div class="flex"><a href="http://localhost:9999/chat-page/'+element.receiver_id+'" class="item-author text-color" data-abc="true">'+await names(element.receiver_id)+'</a><div class="item-except text-muted text-sm h-1x">'+msgsdisplays+'</div></div><div class="no-wrap" style="position: absolute;right: 0;"><div class="item-date text-muted text-sm d-md-block">13/12 18</div></div></div>';
+            automsgsmain+='<div class="list-item" data-id="19"><div><div><img src="images/'+pictures+'" style="width: 50px;height: 48px;border-radius: 60px;"></div></div><div class="flex"><a href="http://localhost:9999/chat-page/'+element.receiver_id+'" class="item-author text-color" data-abc="true">'+await names(element.receiver_id)+'</a><div class="item-except text-muted text-sm h-1x">'+msgsdisplays+'</div></div><div class="no-wrap" style="position: absolute;right: 0;"><div class="item-date text-muted text-sm d-md-block">13/12 18</div></div></div>';
         }        
         let buff = new Buffer.from(automsgsmain);
         let base64data = buff.toString('base64');        
@@ -244,7 +267,7 @@ app.post('/request', async(req,res) =>{
 var users_idss=[];
 var msegs={};
 var autoelements='';
-
+var chat_load_pic='';
 io.on('connection', (socket) => {
 
 socket.emit('connected',socket.id);
@@ -254,20 +277,21 @@ socket.on('store',function(data){
     socket.on('send_message', async (data)=> {
         inserted = await inserting(data.other,data.user_id,data.mesg);
         if(users_idss[data.other]!=''){
-             msg='<div class="d-flex flex-row justify-content-start mb-4"><img src="../images/man.jpg" alt="avatar 1" style="width: 45px; height: 100%;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+data.mesg+'</p></div></div>';
+            chat_load_pic=await usersImages(data.other);
+             msg='<div class="d-flex flex-row justify-content-start mb-4"><img src="../images/'+chat_load_pic+'" alt="avatar 1" style="width: 45px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+data.mesg+'</p></div></div>';
             socket.to(users_idss[data.other]).emit('msg_received',msg)
         }
     })
-
+var chat_pic='';
 socket.on('get_msg',async (data)=>{
     mainmsging=await mainmsg(data[0],data[1]);
+    chat_pic=await usersImages(data[1]);
     var dismsg='';
     for(const mainmsgings of mainmsging){
         if(mainmsgings.sender_id==data[0]){            
             dismsg+='<div class="d-flex flex-row justify-content-end"><div><p class="small p-2 mb-1 text-white rounded-3 bg-primary">'+mainmsgings.msg_content+'</p></div></div>';
-        }else{
-            dismsg+='<div class="d-flex flex-row justify-content-start mb-4"><img src="../images/man.jpg" alt="avatar 1" style="width: 45px; height: 100%;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';
-        }
+        }else{            
+            dismsg+='<div class="d-flex flex-row justify-content-start mb-4"><img src="../images/'+chat_pic+'" alt="avatar 1" style="width: 45px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';}
     }
     socket.emit('dis',dismsg);    
     function checkedStat(){
@@ -283,8 +307,7 @@ socket.on('get_msg',async (data)=>{
 })
 
 socket.on('msgs_see',async(data)=>{
- seenmsgs[data[0]]=data[1];  
- console.log(seenmsgs);
+ seenmsgs[data[0]]=data[1];   
 var update = await updatemsgsStart(data[0],data[1]); 
 })
 
@@ -299,8 +322,7 @@ socket.on('typing',function(data){
 })
 
 socket.on("seenmsg",async(response)=>{  
-    seenmsgs[response[0]]=response[1];
-    console.log(seenmsgs);
+    seenmsgs[response[0]]=response[1];    
 })
     
 //     if(response[1]!=0){
@@ -325,10 +347,11 @@ socket.on('logout',function(data){
 socket.on('/goout',function(){
     socket.disconnect();
 })
-
+var user_chat_pic='';
 socket.on('name',async(data) => {
-    chatNames=await chatName(data);    
-    socket.emit('usersname',chatNames[0].name);
+    chatNames=await chatName(data);
+    user_chat_pic=await usersImages(data);
+    socket.emit('usersname',[chatNames[0].name,user_chat_pic]);
 })
 
 
