@@ -1,3 +1,6 @@
+<?php 
+// echo $nn=basename($_SERVER['PHP_SELF']);
+?>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -18,8 +21,9 @@
    <!-- <img src="https://wallpaperaccess.com/full/731608.jpg" width="400"> -->
    <div class="main-back">
    <div class="prof-container">
-      <div class="img-border" style="border: 5px solid rgb(255 255 255);border-radius: 60px;">
+      <div class="img-border" style="border: 5px solid rgb(255 255 255);border-radius: 60px;position: relative;">
    <img src="test.jpg" width="100" height="100" style="border-radius: 60px;">
+   <i style="position: absolute;color: rgb(255 255 255);bottom: -8px;right: -6px;background: rgb(0 0 0);padding: 10px;border-radius: 50%;" class='far fa-edit'></i>
 </div>
 <h4 class="name">john Doe</h4>
    </div>
