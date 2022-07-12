@@ -41,14 +41,14 @@
   <!-- Modal content -->
 <div class="modal-content">
     <span class="close" style="cursor: pointer;position: absolute;right: 10px;top: 0;font-size: 40px;">&times;</span>
-    <div style='display: flex;justify-content:space-around;'>
+    <div style='display: flex;padding-top: 35px;justify-content:space-around;'>
     <div style="display: grid;width:0;padding-right: 100px;">
-<i class="fas fa-user-circle" style="width: 100%;height: 100%;font-size: 125px;color: white;"></i>
-<p style="color: white;text-align: center;font-size: 20px;word-wrap: break-word;" >Set default Image</p>
+<i class="fas fa-user-circle" style="width: 100%;height: 100%;font-size: 70px;color: white;"></i>
+<p style="color: white;text-align: center;font-size: 20px;word-wrap: break-word;" >Remove</p>
     </div>
     <div style="display: grid;" id="uploadimage">    
-<i class="fa fa-image" style="width: 100%;height: 100%;font-size: 125px;color: white;"></i>
-<p style="color: white;text-align: center;font-size: 20px;word-wrap: break-word;">Upload Image</p>
+<i class="fa fa-image" style="width: 100%;height: 100%;font-size: 70px;color: white;"></i>
+<p style="color: white;text-align: center;font-size: 20px;word-wrap: break-word;">Upload</p>
     </div>
     </div>
 
@@ -138,7 +138,7 @@ input:focus-visible{
 
 /* Modal Content */
 .modal-content {
-   background: url('https://wallpaperaccess.com/full/731608.jpg');
+   background-image: linear-gradient(325deg, #1e111185, #00000052),url('https://wallpaperaccess.com/full/731608.jpg');
     margin: auto;
     padding: 15px;
     position: absolute;
