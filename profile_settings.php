@@ -35,6 +35,7 @@
 <div class="tiles"><i class='far fa-address-card'></i><textarea id="address" class="address" row='10' placeholder="Address" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Address'"></textarea></div>
 </div>
 <div class="button-submit"><button type="button" style="background-color: rgb(4 34 49);" class="btn btn-primary">Save</button></div>
+<input type="file" id="filesnew" name="filesnew" style="display:none">
 <!-- The Modal -->
 <div id="myModal" class="modal" style="background: #000000d1;">
   <!-- Modal content -->
@@ -45,7 +46,7 @@
 <i class="fas fa-user-circle" style="width: 100%;height: 100%;font-size: 125px;color: white;"></i>
 <p style="color: white;text-align: center;font-size: 20px;word-wrap: break-word;" >Set default Image</p>
     </div>
-    <div style="display: grid;">
+    <div style="display: grid;" id="uploadimage">    
 <i class="fa fa-image" style="width: 100%;height: 100%;font-size: 125px;color: white;"></i>
 <p style="color: white;text-align: center;font-size: 20px;word-wrap: break-word;">Upload Image</p>
     </div>
@@ -163,6 +164,10 @@ input:focus-visible{
 }
    </style>
    <script>
+
+      $('#uploadimage').click(function(){
+         $('#filesnew').trigger('click');
+      })
       // Get the modal
 var modal = document.getElementById("myModal");
 
