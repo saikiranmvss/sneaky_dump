@@ -36,7 +36,7 @@
 </div>
 <div class="button-submit"><button type="button" style="background-color: rgb(4 34 49);" class="btn btn-primary">Save</button></div>
 <!-- The Modal -->
-<div id="myModal" class="modal">
+<div id="myModal" class="modal" style="background: #000000d1;">
   <!-- Modal content -->
 <div class="modal-content">
     <span class="close" style="cursor: pointer;position: absolute;right: 10px;top: 0;font-size: 40px;">&times;</span>
