@@ -215,6 +215,7 @@ h2.online-text {
 </section>
 <script>
   var array_dis=[];
+  var storeImage='';
 const messages = document.getElementById('messages');
 function scrollToBottom() {
   messages.scrollTop = messages.scrollHeight;
@@ -249,14 +250,19 @@ function scrollToBottom() {
                 socket.on('usersname',function(data){
                   $('#usersName').html(data[0]);
                   $('#users_pic').attr('src','../images/'+data[1]);
-                  $('.NamesType').html(data[0]+' is typing');                  
+                  // storeImage=$('#users_pic').attr('src','../images/'+data[1]);
+                  $('.NamesType').html(data[0]+' is typing');     
+                  var last_msg=$("#messages").children().last().attr('data');                                        
+                  var storeImage=$('#users_pic').attr('src');
+                  console.log(storeImage);
+                    if(last_msg==1){
+                      $("#messages").children().last().prepend('<img src="'+storeImage+'" alt="avatar 1" datas="2" style="width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;">');
+                    }             
                 });                              
             })
             socket.on("entered",function(data){
               socket.emit('msgs_see',array_dis);
-            })
-            // setInterval(function() {
-            // }, 2000);            
+            })         
 var msgtype='yes';
 var notmsgtype='no';
 var typingStatusUsers=[mine_id,others_main_id,msgtype];
@@ -286,7 +292,6 @@ socket.on('display',function(data){
     $('#typingmsgs').hide();
   }
 })
-
                 function sending(){
                     var other='<%= otherid %>';
                     var user_id='<%= mine %>';
@@ -300,9 +305,17 @@ socket.on('display',function(data){
                     scrollToBottom();
                     }
                 }
-                socket.on('msg_received',function(data){
-                  console.log(data);
-                        $('#messages').append(data);
+                socket.on('msg_received',function(data){                  
+                        $('#messages').append(data[1]);                        
+                        var idnew=$('#imgDiv_'+data[0]).prev().attr('id');
+                        var idnewdata=$('#imgDiv_'+data[0]).prev().find('img').attr('datas');                        
+                        if(idnew!=undefined||idnewdata==2){
+                          var divmain=$('#imgDiv_'+data[0]).prev();
+                          $('#imgDiv_'+data[0]).prev().find('img').remove();
+                          console.log(divmain);
+                          var idTop=divmain.find('#hiddenvariable').val();
+                          $('#msgUser_'+idTop).remove();
+                        }
                         scrollToBottom();
                     })
                 socket.on('dis',function(data){
@@ -310,7 +323,4 @@ socket.on('display',function(data){
                     scrollToBottom();
                 })
                 scrollToBottom();
-// $.post('/updateMsgs',{mine_id:mine_id,others_main_id:others_main_id},function (data, status) {
-//    console.log('testSuccess');
-//   });
             </script>
