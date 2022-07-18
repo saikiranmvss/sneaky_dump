@@ -144,16 +144,6 @@ inserting= function(other,main,mesg){
             if(err){
                 console.log(err);
             }
-            // else{                
-            //     if(seenmsgs[other]==main){
-            //         var updateMsg= "UPDATE users_messages SET receiver_status = '1' WHERE (receiver_id = ? AND sender_id=?) OR (receiver_id = ? AND sender_id=?)";
-            //         return new Promise((resolve,reject)=> {
-            //             db.query(updateMsg,[main,other,other,main],function(err,res){
-            //                 return resolve(mesg);  
-            //             });
-            //         });
-            //     }
-            // }
             return resolve(res.insertId);            
         })
     })
@@ -167,10 +157,12 @@ updateLasrtInseted = function (msg_ids,others,mine_id){
                 console.log(err);
             }else{
                 console.log(res[0].msg_id);
-            }            
+            }          
+            var oldId=res[0].msg_id;  
 var sqlss='update users_messages set flag_pic=1 where msg_id=?';
 return new Promise((resolve,reject)=> {
     db.query(sqlss,[res[0].msg_id],function(err,res){ 
+        return resolve(oldId)
     })
 })
         })
@@ -295,14 +287,17 @@ socket.on('store',function(data){
 })
     socket.on('send_message', async (data)=> {
         inserted = await inserting(data.other,data.user_id,data.mesg);
-        updated=await updateLasrtInseted(inserted,data.user_id,data.other);
         if(users_idss[data.other]!=''){
-            chat_load_pic=await usersImages(data.other);
-             msg='<div class="d-flex flex-row justify-content-start mb-4" id="imgDiv_'+inserted+'" datas="'+inserted+'"><img src="../images/'+chat_load_pic+'" alt="avatar 1" id="msgUser_'+inserted+'" style="width: 45px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+data.mesg+'</p></div><input type="hidden" id="hiddenvariable" value="'+inserted+'"></div>';                          
+            chat_load_pic=await usersImages(data.user_id);
+             msg='<div class="d-flex flex-row justify-content-start mb-4" id="imgDiv_'+inserted+'" datas="'+inserted+'"><img src="../images/'+chat_load_pic+'" alt="avatar 1" id="msgUser_'+inserted+'" style="width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+data.mesg+'</p></div><input type="hidden" id="hiddenvariable" value="'+inserted+'"></div>';                          
              objmsg[0]=inserted;
              objmsg[1]=msg;
             socket.to(users_idss[data.other]).emit('msg_received',objmsg);
-        }
+        }        
+        console.log(inserted);
+        updated=await updateLasrtInseted(inserted,data.user_id,data.other);
+        console.log(updated);
+        // console.log(users_idss[data.other]);        
     })
 var chat_pic='';
 socket.on('get_msg',async (data)=>{
@@ -312,8 +307,13 @@ socket.on('get_msg',async (data)=>{
     for(const mainmsgings of mainmsging){        
         if(mainmsgings.sender_id==data[0]){            
             dismsg+='<div class="d-flex flex-row justify-content-end"><div><p class="small p-2 mb-1 text-white rounded-3 bg-primary">'+mainmsgings.msg_content+'</p></div></div>';
-        }else{             
-            dismsg+='<div class="d-flex flex-row justify-content-start mb-4"><img src="../images/'+chat_pic+'" alt="avatar 1" style="width: 45px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';}
+        }else{ 
+            if(mainmsgings.flag_pic==1){
+                dismsg+='<div class="d-flex flex-row justify-content-start mb-4" data="1"><img src="../images/'+chat_pic+'" id="imgDiv_'+mainmsgings.msg_id+'" alt="avatar 1" style="width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';
+            }else{
+                dismsg+='<div class="d-flex flex-row justify-content-start mb-4" data="1"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';;            
+            }            
+        }            
     }
     socket.emit('dis',dismsg);    
     function checkedStat(){
