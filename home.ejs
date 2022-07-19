@@ -57,9 +57,9 @@
                 </li>
   
                 <li class="nav_item">
-                    <a href="javascript:void(0)" class="nav_link" onclick="logginOut()">
+                    <a href="javascript:void(0)" class="nav_link">
                         <i class='bx bx-briefcase-alt nav_icon'></i>
-                        <span class="nav_name">Logout</span>
+                        <span class="nav_name">Friends</span>
                     </a>
                 </li>
   
@@ -184,9 +184,9 @@ var array_dis=[mine_id,0];
 socket.emit('seenmsg',array_dis);
   }, 900);
 
-function logginOut(){
-  socket.emit('logout',mine_id);
-   window.location.href="http://localhost:9999/logout";
-}
+// function logginOut(){
+//   socket.emit('logout',mine_id);
+//    window.location.href="http://localhost:9999/logout";
+// }
   </script>
   </html>
