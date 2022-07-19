@@ -256,7 +256,8 @@ function scrollToBottom() {
                   var storeImage=$('#users_pic').attr('src');
                   console.log(storeImage);
                     if(last_msg==1){
-                      $("#messages").children().last().prepend('<img src="'+storeImage+'" alt="avatar 1" datas="2" style="width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;">');
+                      $("#messages").children().last().prepend('<img src="'+storeImage+'" alt="avatar 1" datas="2" style="position: relative;top: 15px;width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;">');
+                      $('#messages').children().last().find('#tempdiv').remove();
                     }             
                 });                              
             })
@@ -312,8 +313,10 @@ socket.on('display',function(data){
                         if(idnew!=undefined||idnewdata==2){
                           var divmain=$('#imgDiv_'+data[0]).prev();
                           $('#imgDiv_'+data[0]).prev().find('img').remove();
+                          $('#imgDiv_'+data[0]).prev().prepend('<div style="width: 25px;height: 100%;border-radius: 20px;"></div>');
                           console.log(divmain);
                           var idTop=divmain.find('#hiddenvariable').val();
+                          $('#msgUser_'+idTop).before('<div style="width: 25px;height: 100%;border-radius: 20px;"></div>');
                           $('#msgUser_'+idTop).remove();
                         }
                         scrollToBottom();
