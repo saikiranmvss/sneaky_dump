@@ -169,6 +169,19 @@ return new Promise((resolve,reject)=> {
 })
 }
 
+userdetails=function(id){
+    var details="select * from users where user_id=?";
+    return new Promise((resolve,reject)=>{
+        db.query(details,[id],function(err,res){
+            if(err){
+                console.log(err);
+            }else{                
+                return resolve(res);
+            }
+        })
+    })
+}
+
 updatemsgsStart=function(mine,other){    
     var updateMsg= "UPDATE users_messages SET receiver_status = '1' WHERE (receiver_id = ? AND sender_id=?) OR (receiver_id = ? AND sender_id=?)";
     return new Promise((resolve,reject)=> {
@@ -190,6 +203,20 @@ db.query(sqlm,[mined_id,othermsgid,othermsgid,mined_id],function(err,res){
 })
 
 })
+}
+
+dpupdate = function(id){
+    var dpupdating='update users set user_pic="default.png" where user_id = ?';
+    return new Promise((resolve,reject)=>{
+        db.query(dpupdating,[id],function(err,res){
+            if(err){
+                console.log(err);
+                return resolve('error');
+            }else{
+                return resolve('success');
+            }
+        })
+    })
 }
 
 chatName= function(id){
@@ -222,12 +249,23 @@ app.get('/homepage',async (req,res) =>{
     }
 })
 
+app.post('/removedp',async(req,res)=>{
+updateDp=await dpupdate(req.body.users_id);
+res.json({
+    msg:updateDp
+})
+})
+
+app.get('/edit_profile',async(req,res)=>{    
+    detailss=await userdetails(req.session.user_id);    
+    res.render('edit_profile.ejs',{detailss:detailss})
+})
 
 
 var user_picture='';
 app.get('/profile_page',async(req,res)=>{
     user_picture= await usersImages(req.session.user_id);
-    res.render('profile_settings.ejs',{user_picture:user_picture});
+    res.render('profile_settings.ejs',{user_picture:user_picture,sessioned_id:req.session.user_id});
 })
 
 /* end here */
@@ -289,14 +327,12 @@ socket.on('store',function(data){
         inserted = await inserting(data.other,data.user_id,data.mesg);
         if(users_idss[data.other]!=''){
             chat_load_pic=await usersImages(data.user_id);
-             msg='<div class="d-flex flex-row justify-content-start mb-4" id="imgDiv_'+inserted+'" datas="'+inserted+'"><img src="../images/'+chat_load_pic+'" alt="avatar 1" id="msgUser_'+inserted+'" style="width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+data.mesg+'</p></div><input type="hidden" id="hiddenvariable" value="'+inserted+'"></div>';                          
+             msg='<div class="d-flex flex-row justify-content-start" id="imgDiv_'+inserted+'" datas="'+inserted+'"><img src="../images/'+chat_load_pic+'" alt="avatar 1" id="msgUser_'+inserted+'" style="position: relative;top: 15px;width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 mb-1 rounded-3" style="background-color: #f5f6f7;">'+data.mesg+'</p></div><input type="hidden" id="hiddenvariable" value="'+inserted+'"></div>';                          
              objmsg[0]=inserted;
              objmsg[1]=msg;
             socket.to(users_idss[data.other]).emit('msg_received',objmsg);
-        }        
-        console.log(inserted);
-        updated=await updateLasrtInseted(inserted,data.user_id,data.other);
-        console.log(updated);
+        }                
+        updated=await updateLasrtInseted(inserted,data.user_id,data.other);        
         // console.log(users_idss[data.other]);        
     })
 var chat_pic='';
@@ -309,9 +345,9 @@ socket.on('get_msg',async (data)=>{
             dismsg+='<div class="d-flex flex-row justify-content-end"><div><p class="small p-2 mb-1 text-white rounded-3 bg-primary">'+mainmsgings.msg_content+'</p></div></div>';
         }else{ 
             if(mainmsgings.flag_pic==1){
-                dismsg+='<div class="d-flex flex-row justify-content-start mb-4" data="1"><img src="../images/'+chat_pic+'" id="imgDiv_'+mainmsgings.msg_id+'" alt="avatar 1" style="width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';
+                dismsg+='<div class="d-flex flex-row justify-content-start" data="1"><img src="../images/'+chat_pic+'" id="imgDiv_'+mainmsgings.msg_id+'" alt="avatar 1" style="position: relative;top: 15px;width: 25px; height: 100%;border: 2px solid rgb(239 239 239);border-radius: 20px;"><div><p class="small p-2 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';
             }else{
-                dismsg+='<div class="d-flex flex-row justify-content-start mb-4" data="1"><div><p class="small p-2 ms-3 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';;            
+                dismsg+='<div class="d-flex flex-row justify-content-start" data="1"><div id="tempdiv" style="width: 25px;height: 100%;border-radius: 20px;"></div><div><p class="small p-2 mb-1 rounded-3" style="background-color: #f5f6f7;">'+mainmsgings.msg_content+'</p></div></div>';;            
             }            
         }            
     }
