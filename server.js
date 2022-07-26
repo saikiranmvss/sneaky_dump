@@ -8,6 +8,24 @@ const http = require('http');
 const server = http.createServer(app)
 const { Server } = require("socket.io");
 const io = new Server(server);  
+const { networkInterfaces } = require('os');
+
+const nets = networkInterfaces();
+const results = Object.create(null); // Or just '{}', an empty object
+for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+        // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+        // 'IPv4' is in Node <= 17, from 18 it's a number 4 or 6
+        const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
+        if (net.family === familyV4Value && !net.internal) {
+            if (!results[name]) {
+                results[name] = [];
+            }
+            results[name].push(net.address);
+        }
+    }
+}   
+var servermain=results['Wi-Fi'][0];
 // const WebSocket = require('ws');
 // const wss = new WebSocket(server);
 var bodyParser = require('body-parser');
@@ -19,7 +37,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.set('view-engine','ejs');
 app.get('/',function(requ,res){
-    res.render('signup.ejs');
+    res.render('signup.ejs',{servermain:servermain});
 })
 app.post('/signup',function(req,res){
     var form = new formidable.IncomingForm();
@@ -49,7 +67,7 @@ res.json({
 
 /* login page */
 app.get('/loginpage',function(req,res){
-    res.render('login.ejs');
+    res.render('login.ejs',{servermain:servermain});
 })
 
 /* home */
@@ -109,6 +127,21 @@ usersImages = function (userId) {
     return new Promise((resolve,reject)=> {
         db.query(sql,[userId],function(err,res){
             return resolve(res[0].user_pic);
+        })
+    })
+}
+var friendsarray=[];
+var usersdatares=[];
+userFrnds= function(){
+    var fetched="select * from users";    
+    return new Promise((resolve,reject) =>{
+        db.query(fetched,function(err,res){                        
+            for(z=0;z<res.length;z++){                
+                var id=res[z].user_id;
+                friendsarray[id]=res[z].friends;
+                usersdatares[res[z].user_id]=res[z];
+            }
+            return resolve();
         })
     })
 }
@@ -243,10 +276,39 @@ app.get('/homepage',async (req,res) =>{
          array.push(await names(element.receiver_id));         
          receivers_ids.push(element.receiver_id);
         }
-        res.render('home.ejs',{elements:elements,pictures_array,array,msg_array,sessioned_id:req.session.user_id,receivers_ids:receivers_ids})
+        console.log(servermain);
+        res.render('home.ejs',{servermain:servermain,elements:elements,pictures_array,array,msg_array,sessioned_id:req.session.user_id,receivers_ids:receivers_ids})
 }else{
-        res.render('login.ejs');
+        res.render('login.ejs',{servermain:servermain});
     }
+})
+
+var mainfrnd=[];
+app.get('/friends',async(req,res)=>{    
+    console.log(req.session.user_id);
+    var friends=await userFrnds();    
+    console.log(friendsarray[req.session.user_id]);
+    if(friendsarray[req.session.user_id]!=null){        
+        var ownfrnds=JSON.parse(friendsarray[req.session.user_id]);
+        for(i=0;i<usersdatares.length;i++){
+            if(usersdatares[i]!=req.session.user_id){
+            if(ownfrnds.includes(usersdatares[i])){
+
+            }else{
+                mainfrnd[i]=usersdatares[i]
+            }
+            }            
+        }
+    }else{        
+        for(i=1;i<usersdatares.length;i++){            
+            if(i!=req.session.user_id){
+                console.log(usersdatares[i]); 
+            mainfrnd[i]=usersdatares[i];          
+            }  
+        }
+    }
+    console.log(mainfrnd);
+    res.render('friends_page.ejs',{servermain:servermain,mainfrnd:mainfrnd});
 })
 
 app.post('/removedp',async(req,res)=>{
@@ -258,14 +320,14 @@ res.json({
 
 app.get('/edit_profile',async(req,res)=>{    
     detailss=await userdetails(req.session.user_id);    
-    res.render('edit_profile.ejs',{detailss:detailss})
+    res.render('edit_profile.ejs',{detailss:detailss,servermain:servermain})
 })
 
 
 var user_picture='';
 app.get('/profile_page',async(req,res)=>{
     user_picture= await usersImages(req.session.user_id);
-    res.render('profile_settings.ejs',{user_picture:user_picture,sessioned_id:req.session.user_id});
+    res.render('profile_settings.ejs',{user_picture:user_picture,sessioned_id:req.session.user_id,servermain:servermain});
 })
 
 /* end here */
@@ -273,7 +335,7 @@ var main_user='';
 app.get('/allusers',function(req,res){
     users="select * from users where user_id!=?";
     db.query(users,[req.session.user_id],function(err,result){
-        res.render('users.ejs',{users:result,sessioned_id:req.session.user_id});    
+        res.render('users.ejs',{users:result,sessioned_id:req.session.user_id,servermain:servermain});    
     })
     main_user=req.session.user_id;
 })
@@ -292,7 +354,7 @@ app.post('/request', async(req,res) =>{
             }else{
             var msgsdisplays=msgsdisplay.msg_content;
             }
-            automsgsmain+='<div class="list-item" data-id="19"><div><div><img src="images/'+pictures+'" style="width: 50px;height: 48px;border-radius: 60px;"></div></div><div class="flex"><a href="http://localhost:9999/chat-page/'+element.receiver_id+'" class="item-author text-color" data-abc="true">'+await names(element.receiver_id)+'</a><div class="item-except text-muted text-sm h-1x">'+msgsdisplays+'</div></div><div class="no-wrap" style="position: absolute;right: 0;"><div class="item-date text-muted text-sm d-md-block">13/12 18</div></div></div>';
+            automsgsmain+='<div class="list-item" data-id="19"><div><div><img src="images/'+pictures+'" style="width: 50px;height: 48px;border-radius: 60px;"></div></div><div class="flex"><a href="http://'+servermain+':9999/chat-page/'+element.receiver_id+'" class="item-author text-color" data-abc="true">'+await names(element.receiver_id)+'</a><div class="item-except text-muted text-sm h-1x">'+msgsdisplays+'</div></div><div class="no-wrap" style="position: absolute;right: 0;"><div class="item-date text-muted text-sm d-md-block">13/12 18</div></div></div>';
         }        
         let buff = new Buffer.from(automsgsmain);
         let base64data = buff.toString('base64');        
@@ -300,14 +362,6 @@ app.post('/request', async(req,res) =>{
             msg:base64data
         })
 })
-
-// app.post('/updateMsgs',async(req,res)=>{
-// var MsgUpdateMineId=req.body.mine_id;
-// var MsgUpdateOthersId=req.body.others_main_id;
-// seenmsgs[MsgUpdateMineId]=MsgUpdateOthersId;    
-//         await updatemsgsStart(MsgUpdateMineId,MsgUpdateOthersId);    
-// })
-
 // ends here
 
 // socket related code
@@ -382,20 +436,9 @@ socket.on('typing',function(data){
 socket.on("seenmsg",async(response)=>{  
     seenmsgs[response[0]]=response[1];    
 })
-    
-//     if(response[1]!=0){
-//         await updatemsgsStart(response[0],response[1]);
-//     }
-    // if(seenmsg_time!=''){
-    // clearTimeout(seenmsg_time);
-    // }
-    // var seenmsg_time=setTimeout(() => {
-    //     seenmsgs[response[0]]=0;
-    // }, 1500);
 
 socket.on('online',function(data){  
-    online_status[data]='online';
-    // seenmsgs[data]=0;
+    online_status[data]='online';    
 })
 
 socket.on('logout',function(data){
@@ -411,26 +454,16 @@ socket.on('name',async(data) => {
     user_chat_pic=await usersImages(data);
     socket.emit('usersname',[chatNames[0].name,user_chat_pic]);
 })
-
-
-// socket.on('checking',async(data) => {
-
-// socket.emit('sent',automsgsmain);
-
-// });
 })
 
 // End here
 
 app.get('/chat-page/:uid',function(req,res){
-    res.render('chat-window.ejs',{otherid:req.params.uid,mine:req.session.user_id});
+    res.render('chat-window.ejs',{otherid:req.params.uid,mine:req.session.user_id,servermain:servermain});
 })
-
-
-
 
 app.get('/logout',function(req,res){    
     req.session.destroy();    
-    res.render('login.ejs');
+    res.render('login.ejs',{servermain:servermain});
 })
  server.listen(9999)
