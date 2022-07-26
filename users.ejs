@@ -17,28 +17,28 @@
                    </a>
                </li> -->              
                <li class="nav_item">
-                   <a href="http://localhost:9999/homepage" class="nav_link">
+                   <a href="http://<%= servermain %>:9999/homepage" class="nav_link">
                        <i class='bx bx-message-square-detail nav_icon'></i>
                        <span class="nav_name">Chat</span>
                    </a>
                </li>
  
                <li class="nav_item">
-                   <a href="http://localhost:9999/allusers" class="nav_link active-link">
+                   <a href="http://<%= servermain %>:9999/allusers" class="nav_link active-link">
                        <i class='bx bx-book-alt nav_icon'></i>
                        <span class="nav_name">Users</span>
                    </a>
                </li>
  
                <li class="nav_item">
-                   <a href="javascript:void(0)" class="nav_link">
+                   <a href="http://<%= servermain %>:9999/friends" class="nav_link">
                        <i class='bx bx-briefcase-alt nav_icon'></i>
                        <span class="nav_name">Friends</span>
                    </a>
                </li>
  
                <li class="nav_item">
-                   <a href="http://localhost:9999/profile_page" class="nav_link">
+                   <a href="http://<%= servermain %>:9999/profile_page" class="nav_link">
                        <i class='bx bx-user nav_icon'></i>
                        <span class="nav_name">Profile</span>
                    </a>
@@ -76,7 +76,7 @@
      <script>
         //   var socket = io.connect('http://192.168.10.6:9999/allusers');
          function chatting(id){            
-    window.location.href="http://localhost:9999/chat-page/"+id;
+    window.location.href="http://<%= servermain %>:9999/chat-page/"+id;
          }
          
     const socket = io();

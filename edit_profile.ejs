@@ -198,7 +198,7 @@ var users_id='<%= detailss[0].user_id %>'
 function Removedp(){
    $.ajax({
       type:'post',
-      url:'http://localhost:9999/removedp',
+      url:'http://<%= servermain %>:9999/removedp',
       data:{users_id:users_id},
       success:function(data){
 if(data.msg=='error'){
