@@ -1,4 +1,5 @@
 var mysql=require('mysql');
+const lib = require("./functions");
 var express=require('express');
 var formidable = require('formidable');
 var session = require('express-session');
@@ -136,12 +137,10 @@ userFrnds= function(){
     var fetched="select * from users";    
     return new Promise((resolve,reject) =>{
         db.query(fetched,function(err,res){                        
-            for(z=0;z<res.length;z++){                
-                var id=res[z].user_id;
-                friendsarray[id]=res[z].friends;
+            for(z=0;z<res.length;z++){                                                
                 usersdatares[res[z].user_id]=res[z];
             }
-            return resolve();
+            return resolve(usersdatares);
         })
     })
 }
@@ -189,7 +188,7 @@ updateLasrtInseted = function (msg_ids,others,mine_id){
             if(err){
                 console.log(err);
             }else{
-                console.log(res[0].msg_id);
+                
             }          
             var oldId=res[0].msg_id;  
 var sqlss='update users_messages set flag_pic=1 where msg_id=?';
@@ -261,6 +260,7 @@ db.query(sqlm,[id],function(err,res){
 })
 }
 
+
 // ends here
 
 app.get('/homepage',async (req,res) =>{
@@ -275,8 +275,7 @@ app.get('/homepage',async (req,res) =>{
         pictures_array.push(await usersImages(element.receiver_id));
          array.push(await names(element.receiver_id));         
          receivers_ids.push(element.receiver_id);
-        }
-        console.log(servermain);
+        }        
         res.render('home.ejs',{servermain:servermain,elements:elements,pictures_array,array,msg_array,sessioned_id:req.session.user_id,receivers_ids:receivers_ids})
 }else{
         res.render('login.ejs',{servermain:servermain});
@@ -284,31 +283,32 @@ app.get('/homepage',async (req,res) =>{
 })
 
 var mainfrnd=[];
-app.get('/friends',async(req,res)=>{    
-    console.log(req.session.user_id);
-    var friends=await userFrnds();    
-    console.log(friendsarray[req.session.user_id]);
-    if(friendsarray[req.session.user_id]!=null){        
-        var ownfrnds=JSON.parse(friendsarray[req.session.user_id]);
-        for(i=0;i<usersdatares.length;i++){
-            if(usersdatares[i]!=req.session.user_id){
-            if(ownfrnds.includes(usersdatares[i])){
-
-            }else{
-                mainfrnd[i]=usersdatares[i]
-            }
-            }            
-        }
-    }else{        
+app.get('/friends',async(req,res)=>{   
+    const showfun =await lib.fetchfrnds(req.session.user_id);       
+    const  userFrndsMain= await userFrnds();      
+    if(showfun[0].friends!=null){
+        var ownfrnds=JSON.parse(showfun[0].friends);
         for(i=1;i<usersdatares.length;i++){            
-            if(i!=req.session.user_id){
-                console.log(usersdatares[i]); 
-            mainfrnd[i]=usersdatares[i];          
-            }  
+            if(usersdatares[i].user_id!=req.session.user_id){
+                var number=usersdatares[i].user_id;
+                var numbers=number.toString();                
+                if(ownfrnds.includes(numbers)){    
+                    console.log('found');
+                    usersdatares[i]='';
+            }
+            }    
+        }
+        usersdatares[req.session.user_id]='';
+        console.log(usersdatares);
+    }else{
+        for(i=1;i<usersdatares.length;i++){
+            if(usersdatares[i].user_id==req.session.user_id){
+                usersdatares.splice(i,1);
+
+            }
         }
     }
-    console.log(mainfrnd);
-    res.render('friends_page.ejs',{servermain:servermain,mainfrnd:mainfrnd});
+    res.render('friends_page.ejs',{servermain:servermain,usersdatares:usersdatares,id:req.session.user_id});
 })
 
 app.post('/removedp',async(req,res)=>{
@@ -363,6 +363,12 @@ app.post('/request', async(req,res) =>{
         })
 })
 // ends here
+
+app.post('/addfrnd',async(req,res)=>{
+    var frndid=req.body.id;
+    var mine_id=req.body.mine_id
+    const addfrnds =await lib.addfrnd(mine_id,frndid);
+})
 
 // socket related code
 
