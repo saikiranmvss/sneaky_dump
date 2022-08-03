@@ -68,7 +68,7 @@
       <div style="display:flex;justify-content: space-between;">
     </div>
       <button type="button" class="btn btn-primary" style="display:flex;margin:auto;" onclick="signups()">Signup</button>
-      <div style="padding-top:7px;font-size: 14px;text-align:center;">Already have an account?<a href="http://localhost:9999/loginpage" style="text-decoration:none;"><strong style="padding-left: 7px;color: rgb(240 128 128);">Login</strong></a></div>
+      <div style="padding-top:7px;font-size: 14px;text-align:center;">Already have an account?<a href="http://<%= servermain %>:9999/loginpage" style="text-decoration:none;"><strong style="padding-left: 7px;color: rgb(240 128 128);">Login</strong></a></div>
     </form>
   </div>
   </div>
@@ -123,13 +123,13 @@ function signups(){
 
                 $.ajax({
                     type:'post',
-                    url:'http://localhost:9999/signup',
+                    url:'http://<%= servermain %>:9999/signup',
                     data:formdata,
                     contentType:false,
                     processData:false,
                     success:function(data){
                         if(data.msg=='success'){
-                            window.location.href="http://localhost:9999/loginpage";
+                            window.location.href="http://<%= servermain %>:9999/loginpage";
                         }
                     }
                 })

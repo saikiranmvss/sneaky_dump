@@ -19,10 +19,11 @@
 }
 
 </style>
-  <body style="margin:unset">
-    <% if (mainfrnd.length) {  %>                
-        <% for(i=2;i< mainfrnd.length;i++){ if(mainfrnd[i]!=''){ %>   
-    <div style="display: flex;padding: 15px;"><img src="../images/<%= mainfrnd[i].user_pic %>" style="width: 90px;border-radius: 30px;height: 80px;" alt=""><div style="padding-left: 20px;"><p style="margin-top: unset;margin-bottom: unset;font-size:20px; margin-left: 5px;"><%= mainfrnd[i].name %></p><div><button type="button" class="btn btn-primary addfrnd" data="<%= mainfrnd[i].user_id %>">Add friend</button><button type="button" class="btn btn-secondary">Message</button></div></div></div>  
+
+<body style="margin:unset">
+    <% if (usersdatares.length) {  %>                
+        <% for(i=1;i< usersdatares.length;i++){ if(usersdatares[i]!=''){ %>   
+    <div style="display: flex;padding: 15px;"><img src="../images/<%= usersdatares[i].user_pic %>" style="width: 90px;border-radius: 30px;height: 80px;" alt=""><div style="padding-left: 20px;"><p style="margin-top: unset;margin-bottom: unset;font-size:20px; margin-left: 5px;"><%= usersdatares[i].name %></p><div><button type="button" class="btn btn-primary addfrnd" data="<%= usersdatares[i].user_id %>">Add friend</button><button type="button" class="btn btn-secondary">Message</button></div></div></div>  
   <% } }
          } %>
       
@@ -49,14 +50,14 @@
           </li>
 
           <li class="nav_item">
-              <a href="http://<%= servermain %>:9999/friends" class="nav_link">
+              <a href="http://<%= servermain %>:9999/friends" class="nav_link active-link">
                   <i class='bx bx-briefcase-alt nav_icon'></i>
                   <span class="nav_name">Friends</span>
               </a>
           </li>
 
           <li class="nav_item">
-              <a href="http://<%= servermain %>:9999/profile_page" class="nav_link active-link">
+              <a href="http://<%= servermain %>:9999/profile_page" class="nav_link">
                   <i class='bx bx-user nav_icon'></i>
                   <span class="nav_name">Profile</span>
               </a>
@@ -66,8 +67,17 @@
   <script>
    $('.addfrnd').click(function(){
       $(this).removeClass('btn-primary');
-      $(this).removeClass('btn-light');
+      $(this).removeClass('btn-light');      
+      var id=$(this).attr('data');
       $(this).html('Requested');
+      $.ajax({
+        type:'post',
+        url:'http://<%= servermain %>:9999/addfrnd',
+        data:{id:id,mine_id:'<%= id %>'},
+            success:function(data){
+
+            }
+      })
    })
   </script>
   </body>
